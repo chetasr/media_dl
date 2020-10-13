@@ -70,7 +70,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
     # Start the Bot
-    updater.start_webhook(webhook_url='https://master-media-dl-chetasr.endpoint.ainize.ai')
+    updater.start_webhook()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
