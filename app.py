@@ -21,11 +21,6 @@ import os
 
 import youtube_dl
 
-import magic
-import magic.flags
-
-magic = magic.Magic()
-
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
