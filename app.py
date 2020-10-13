@@ -19,6 +19,13 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 import os
 
+import youtube_dl
+
+import magic
+import magic.flags
+
+magic = magic.Magic()
+
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -26,6 +33,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+ydl = youtube_dl.YoutubeDL()
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
@@ -40,8 +48,14 @@ def help_command(update, context):
 
 def echo(update, context):
     link = update.message.text
-    update.message.reply_text(f'GOT LINK: {link}')
+    result = ydl.extract_info(link, download=False)
 
+    if result['ext'] in ['jpg', 'jpeg', 'png']:
+        update.message.reply_photo(result['url'])
+    elif result['ext'] in ['mp4', 'webm']:
+        update.message.reply_video(result['url'])
+    else:
+        update.message.reply_video('Could not parse!')
 
 def main():
     """Start the bot."""
