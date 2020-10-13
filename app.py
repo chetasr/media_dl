@@ -45,9 +45,20 @@ def echo(update, context):
     link = update.message.text
     result = ydl.extract_info(link, download=False)
 
-    if result['ext'] in ['jpg', 'jpeg', 'png']:
-        update.message.reply_photo(result['url'])
-    elif result['ext'] in ['mp4', 'webm']:
+    if result['extractor'] == 'generic':
+        if 'ext' in result.keys():
+            if result['ext'] in ['jpg', 'jpeg', 'png']:
+                update.message.reply_photo(result['url'])
+            elif result['ext'] in ['mp4', 'webm']:
+                update.message.reply_video(result['url'])
+        elif 'entries' in result.keys():
+            entries = result['entries'][0]['formats']
+            entries = sorted(entries, key=lambda l: len(l['url']))[0]
+            if result['ext'] in ['mp4', 'webm']:
+                update.message.reply_video(result['url'])
+        else:
+            update.message.reply_video('Could not parse!')
+    if result['extractor'] == 'Gfycat':
         update.message.reply_video(result['url'])
     else:
         update.message.reply_video('Could not parse!')
