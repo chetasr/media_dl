@@ -54,7 +54,7 @@ def echo(update, context):
         update.message.reply_video(open(file, 'rb'), caption=data['title'])
         return
 
-    elif data['url'].startswith('https://gfycat'):
+    elif data['url'].startswith('https://gfycat') or data['url'].startswith('https://redgifs'):
         # gfycat extractor
         url = requests.get(data['url'], allow_redirects=True).url
         result = ydl.extract_info(url)
@@ -84,23 +84,6 @@ def echo(update, context):
     else:
         update.message.reply_message('Could not parse!')
         return
-    """if result['extractor'] == 'generic':
-        if 'ext' in result.keys():
-            if result['ext'] in ['jpg', 'jpeg', 'png']:
-                update.message.reply_photo(result['url'])
-            elif result['ext'] in ['mp4', 'webm']:
-                update.message.reply_video(result['url'])
-        elif 'entries' in result.keys():
-            entries = result['entries'][0]['formats']
-            entries = sorted(entries, key=lambda l: len(l['url']))[0]
-            if result['ext'] in ['mp4', 'webm']:
-                update.message.reply_video(result['url'])
-        else:
-            update.message.reply_video('Could not parse!')
-    if result['extractor'] == 'Gfycat':
-        update.message.reply_video(result['url'])
-    else:
-        update.message.reply_video('Could not parse!')"""
 
 def main():
     """Start the bot."""
