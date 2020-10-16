@@ -14,12 +14,12 @@ bot.
 """
 
 import logging
-
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
 import os
-
 import youtube_dl
+import requests
+from redvid import Downloader
+import subprocess
 
 # Enable logging
 logging.basicConfig(
@@ -28,6 +28,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+vredd = Downloader(max_q=True)
 ydl = youtube_dl.YoutubeDL()
 
 # Define a few command handlers. These usually take the two arguments update and
@@ -42,10 +43,48 @@ def help_command(update, context):
 
 
 def echo(update, context):
-    link = update.message.text
-    result = ydl.extract_info(link, download=False)
+    link = update.message.text.split('?')[0]
+    data = requests.get(link+'.json', headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_0_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36 Edg/86.0.622.38'}).json()
+    data = data[0]['data']['children'][0]['data']
 
-    if result['extractor'] == 'generic':
+    if data['url'].startswith('https://v.redd'):
+        # v.reddit extractor
+        vredd.url = data['url']
+        file = vredd.download()
+        update.message.reply_video(open(file, 'rb'), caption=data['title'])
+        return
+
+    elif data['url'].startswith('https://gfycat'):
+        # gfycat extractor
+        url = requests.get(data['url'], allow_redirects=True).url
+        result = ydl.extract_info(url)
+        update.message.reply_video(open(ydl.prepare_filename(result), 'rb'), caption=data['title'])
+        return
+    
+    elif data['url'].startswith('https://i.redd'):
+        # i.reddit extractor
+
+        update.message.reply_photo(data['url'], caption=data['title'])
+        return
+
+    elif data['url'].startswith('https://i.imgur') or data['url'].startswith('https://imgur'):
+        # imgur extractor
+
+        try:
+            urls = subprocess.check_output(['imgur_downloader', '--print-only', data['url']]).decode('UTF-8').splitlines()
+            for u in urls:
+                if u.endswith('gifv'):
+                    update.message.reply_video(u[:-4]+'mp4')
+                else:
+                    update.message.reply_photo(u)
+        except:
+            update.message.reply_message('Could not parse!')
+        return
+
+    else:
+        update.message.reply_message('Could not parse!')
+        return
+    """if result['extractor'] == 'generic':
         if 'ext' in result.keys():
             if result['ext'] in ['jpg', 'jpeg', 'png']:
                 update.message.reply_photo(result['url'])
@@ -61,7 +100,7 @@ def echo(update, context):
     if result['extractor'] == 'Gfycat':
         update.message.reply_video(result['url'])
     else:
-        update.message.reply_video('Could not parse!')
+        update.message.reply_video('Could not parse!')"""
 
 def main():
     """Start the bot."""
