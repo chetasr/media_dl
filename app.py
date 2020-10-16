@@ -29,7 +29,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 vredd = Downloader(max_q=True)
-ydl = youtube_dl.YoutubeDL()
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
@@ -57,19 +56,17 @@ def echo(update, context):
     elif data['url'].startswith('https://gfycat') or data['url'].startswith('https://redgifs'):
         # gfycat extractor
         url = requests.get(data['url'], allow_redirects=True).url
-        result = ydl.extract_info(url)
-        update.message.reply_video(open(ydl.prepare_filename(result), 'rb'), caption=data['title'])
+        urls = subprocess.check_output(['youtube-dl', '--quiet', url, '--exec', 'echo {}']).decode('UTF-8').strip()
+        update.message.reply_video(open(urls, 'rb'), caption=data['title'])
         return
     
     elif data['url'].startswith('https://i.redd'):
         # i.reddit extractor
-
         update.message.reply_photo(data['url'], caption=data['title'])
         return
 
     elif data['url'].startswith('https://i.imgur') or data['url'].startswith('https://imgur'):
         # imgur extractor
-
         try:
             urls = subprocess.check_output(['imgur_downloader', '--print-only', data['url']]).decode('UTF-8').splitlines()
             for u in urls:
